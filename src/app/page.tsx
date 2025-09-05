@@ -11,7 +11,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import SidebarUserButton from "@/features/users/components/SidebarUserButton";
+import SidebarUserButtonSuspense from "@/features/users/components/SidebarUserButton";
 import {
   SignedIn,
   SignedOut,
@@ -48,7 +48,7 @@ export default function HomePage() {
             <SidebarFooter>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarUserButton />
+                  <SidebarUserButtonSuspense />
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarFooter>

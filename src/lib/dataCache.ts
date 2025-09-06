@@ -11,6 +11,10 @@ export function getGlobalTag(tag: CacheTag) {
   return `global:${tag}` as const;
 }
 
+export function getOrganizationTag({ id, tag }: { tag: CacheTag; id: string }) {
+  return `organization:${id}-${tag}` as const;
+}
+
 export function getIdTag({ id, tag }: { tag: CacheTag; id: string }) {
   return `id:${id}-${tag}` as const;
 }

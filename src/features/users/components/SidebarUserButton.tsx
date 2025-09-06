@@ -1,5 +1,8 @@
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import SidebarUserButtonClient from "@/features/users/components/SidebarUserButtonClient";
+import { SignOutButton } from "@/services/clerk/components/AuthButtons";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentAuth";
+import { LogOutIcon } from "lucide-react";
 import { Suspense } from "react";
 
 export default function SidebarUserButton() {
@@ -11,16 +14,18 @@ export default function SidebarUserButton() {
 }
 
 async function SidebarUserButtonSuspense() {
-  const test = await getCurrentUser({ allData: true });
-  console.log(test);
+  const { user } = await getCurrentUser({ allData: true });
 
-  return (
-    <SidebarUserButtonClient
-      user={{
-        name: "Hien Vu Vinh",
-        email: "vuvinhhien.work@gmail.com",
-        imageUrl: "",
-      }}
-    />
-  );
+  if (user == null) {
+    return (
+      <SignOutButton>
+        <SidebarMenuButton>
+          <LogOutIcon />
+          <span>Log Out</span>
+        </SidebarMenuButton>
+      </SignOutButton>
+    );
+  }
+
+  return <SidebarUserButtonClient user={user} />;
 }

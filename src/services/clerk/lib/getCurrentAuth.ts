@@ -1,4 +1,5 @@
 import { env } from "@/data/env/client";
+import { FullUser } from "@/types";
 import { auth } from "@clerk/nextjs/server";
 
 export async function getCurrentUser({ allData = false } = {}) {
@@ -20,7 +21,7 @@ async function getUser(token: string | null) {
       },
     });
 
-    const json = await response.json();
+    const json: FullUser = await response.json();
 
     return json;
   } catch (err) {

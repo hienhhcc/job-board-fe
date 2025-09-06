@@ -21,7 +21,6 @@ async function SidebarOrganizationButtonSuspense() {
     getCurrentUser({ allData: true }),
     getCurrentOrganization({ allData: true }),
   ]);
-  console.log({ user, organization });
 
   if (user == null || organization == null) {
     return (

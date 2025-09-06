@@ -6,3 +6,11 @@ export type FullUser = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type FullOrganization = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+};

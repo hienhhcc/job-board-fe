@@ -72,7 +72,7 @@ async function SuspendedPage({ params }: Props) {
   );
 }
 
-async function getJobListing(jobListingId: string, orgId: string) {
+export async function getJobListing(jobListingId: string, orgId: string) {
   const { getToken } = await auth();
 
   const token = await getToken();

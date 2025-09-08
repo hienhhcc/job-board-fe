@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import {
   experienceLevels,
+  FullJobListing,
   jobListingTypes,
   locationRequirements,
   wageIntervals,
@@ -36,15 +37,34 @@ import { StateSelectItem } from "@/features/job-listings/components/StateSelectI
 import { MarkdownEditor } from "@/components/markdown/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { LoadingSwap } from "@/components/LoadingSwap";
-import { createJobListing } from "@/features/job-listings/actions/actions";
+import {
+  createJobListing,
+  updateJobListing,
+} from "@/features/job-listings/actions/actions";
 import { toast } from "sonner";
 
 const NONE_SELECT_ITEM = "none";
 
-export default function JobListingForm() {
+export default function JobListingForm({
+  jobListing,
+}: {
+  jobListing: Pick<
+    FullJobListing,
+    | "title"
+    | "description"
+    | "experienceLevel"
+    | "id"
+    | "stateAbbreviation"
+    | "type"
+    | "wage"
+    | "wageInterval"
+    | "locationRequirement"
+    | "city"
+  >;
+}) {
   const form = useForm({
     resolver: zodResolver(jobListingSchema),
-    defaultValues: {
+    defaultValues: jobListing ?? {
       title: "",
       description: "",
       stateAbbreviation: null,
@@ -58,8 +78,10 @@ export default function JobListingForm() {
   });
 
   const onSubmit = async (data: z.infer<typeof jobListingSchema>) => {
-    console.log(data);
-    const response = await createJobListing(data);
+    const action = jobListing
+      ? updateJobListing.bind(null, jobListing.id)
+      : createJobListing;
+    const response = await action(data);
 
     if (response == null) {
       toast.error("Cant create job listing");

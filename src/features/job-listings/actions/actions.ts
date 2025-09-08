@@ -1,5 +1,6 @@
 "use server";
 
+import { getJobListing } from "@/app/employer/job-listings/[jobListingId]/page";
 import { env } from "@/data/env/client";
 import { jobListingSchema } from "@/features/job-listings/actions/schemas";
 import { revalidateJobListingTag } from "@/features/job-listings/cache";
@@ -67,6 +68,70 @@ export async function createJobListing(
   if (!jobListing) {
     return null;
   }
+
+  revalidateJobListingTag({ id: jobListing.id, orgId });
+  redirect(`/employer/job-listings/${jobListing.id}`);
+}
+
+async function updateJobListingDb(
+  id: string,
+  data: z.infer<typeof jobListingSchema>
+) {
+  const { getToken, orgId } = await auth();
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/job-listing/org/${orgId}/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const json: FullJobListing = await response.json();
+
+    return json;
+  } catch (err) {
+    console.log("Network error", err);
+    return null;
+  }
+}
+
+export async function updateJobListing(
+  id: string,
+  unsafeData: z.infer<typeof jobListingSchema>
+) {
+  const { orgId } = await getCurrentOrganization();
+
+  if (orgId == null) {
+    return {
+      error: true,
+      message: "You don't have a permission to create a job listing",
+    };
+  }
+
+  const { success, data } = jobListingSchema.safeParse(unsafeData);
+
+  if (!success) {
+    return {
+      error: true,
+      message: "There was an error creating your job listing",
+    };
+  }
+
+  const jobListing = await getJobListing(id, orgId);
+
+  if (!jobListing) {
+    return null;
+  }
+
+  const updatedJobListing = await updateJobListingDb(id, data);
 
   revalidateJobListingTag({ id: jobListing.id, orgId });
   redirect(`/employer/job-listings/${jobListing.id}`);

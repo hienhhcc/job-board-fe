@@ -4,7 +4,10 @@ import { getJobListing } from "@/app/employer/job-listings/[jobListingId]/page";
 import { env } from "@/data/env/client";
 import { jobListingSchema } from "@/features/job-listings/actions/schemas";
 import { revalidateJobListingTag } from "@/features/job-listings/cache";
-import { hasReachedMaxPublishedJobListings } from "@/features/job-listings/lib/planFeatureHelpers";
+import {
+  hasReachedMaxFeaturedJobListings,
+  hasReachedMaxPublishedJobListings,
+} from "@/features/job-listings/lib/planFeatureHelpers";
 import { getNextJobListingStatus } from "@/features/job-listings/lib/utils";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
@@ -174,6 +177,36 @@ export async function toggleJobListingStatus(id: string) {
       newStatus === "published" && jobListing.postedAt == null
         ? new Date()
         : undefined,
+  });
+
+  revalidateJobListingTag({ id: jobListing.id, orgId });
+
+  return { error: false };
+}
+
+export async function toggleJobListingFeatured(id: string) {
+  const error = {
+    error: true,
+    message:
+      "You don't have a permission to update this job listing's featured status",
+  };
+
+  const { orgId } = await getCurrentOrganization();
+  if (orgId == null) return error;
+
+  const jobListing = await getJobListing(id, orgId);
+  if (jobListing == null) return error;
+
+  const newFeaturedStatus = !jobListing.isFeatured;
+  if (
+    !(await hasOrgUserPermission("job_listing:change_status")) ||
+    (newFeaturedStatus && (await hasReachedMaxFeaturedJobListings()))
+  ) {
+    return error;
+  }
+
+  await updateJobListingDb(id, {
+    isFeatured: newFeaturedStatus,
   });
 
   revalidateJobListingTag({ id: jobListing.id, orgId });

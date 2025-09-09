@@ -10,17 +10,29 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { env } from "@/data/env/client";
-import { toggleJobListingStatus } from "@/features/job-listings/actions/actions";
+import {
+  toggleJobListingFeatured,
+  toggleJobListingStatus,
+} from "@/features/job-listings/actions/actions";
 import { getJobListingOrganizationTag } from "@/features/job-listings/cache";
 import JobListingBadges from "@/features/job-listings/components/JobListingBadges";
 import { formatJobListingStatus } from "@/features/job-listings/lib/formatters";
-import { hasReachedMaxPublishedJobListings } from "@/features/job-listings/lib/planFeatureHelpers";
+import {
+  hasReachedMaxFeaturedJobListings,
+  hasReachedMaxPublishedJobListings,
+} from "@/features/job-listings/lib/planFeatureHelpers";
 import { getNextJobListingStatus } from "@/features/job-listings/lib/utils";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
 import { FullJobListing, JobListingStatus } from "@/types";
 import { auth } from "@clerk/nextjs/server";
-import { EditIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import {
+  EditIcon,
+  EyeIcon,
+  EyeOffIcon,
+  StarIcon,
+  StarOffIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactNode, Suspense } from "react";
@@ -73,6 +85,12 @@ async function SuspendedPage({ params }: Props) {
             </Button>
           </AsyncIf>
           <StatusUpdateButton status={jobListing.status} id={jobListing.id} />
+          {jobListing.status === "published" && (
+            <FeaturedToggleButton
+              isFeatured={jobListing.isFeatured}
+              id={jobListing.id}
+            />
+          )}
         </div>
       </div>
 
@@ -87,6 +105,48 @@ async function SuspendedPage({ params }: Props) {
         dialogTitle="Description"
       />
     </div>
+  );
+}
+
+function FeaturedToggleButton({
+  isFeatured,
+  id,
+}: {
+  isFeatured: boolean;
+  id: string;
+}) {
+  const button = (
+    <ActionButton
+      action={toggleJobListingFeatured.bind(null, id)}
+      variant="outline"
+    >
+      {featuredToggleButtonText(isFeatured)}
+    </ActionButton>
+  );
+
+  return (
+    <AsyncIf
+      condition={() => hasOrgUserPermission("job_listing:change_status")}
+    >
+      {isFeatured ? (
+        button
+      ) : (
+        <AsyncIf
+          condition={async () => {
+            const isMaxed = await hasReachedMaxFeaturedJobListings();
+            return !isMaxed;
+          }}
+          otherwise={
+            <UpgradePopover
+              buttonText={featuredToggleButtonText(isFeatured)}
+              popoverText="You must upgrade your plan to feature more job listings."
+            />
+          }
+        >
+          {button}
+        </AsyncIf>
+      )}
+    </AsyncIf>
   );
 }
 
@@ -154,6 +214,24 @@ function UpgradePopover({
         </Button>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function featuredToggleButtonText(isFeatured: boolean) {
+  if (isFeatured) {
+    return (
+      <>
+        <StarOffIcon className="size-4" />
+        UnFeature
+      </>
+    );
+  }
+
+  return (
+    <>
+      <StarIcon className="size-4" />
+      Feature
+    </>
   );
 }
 

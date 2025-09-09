@@ -20,6 +20,21 @@ export async function hasReachedMaxPublishedJobListings() {
   return !canPost.some(Boolean);
 }
 
+export async function hasReachedMaxFeaturedJobListings() {
+  const { orgId } = await getCurrentOrganization();
+
+  if (orgId == null) return true;
+
+  const count = await getFeaturedJobListingsCount(orgId);
+
+  const canFeatured = await Promise.all([
+    hasPlanFeature("1_featured_job_listing").then((has) => has && count < 1),
+    hasPlanFeature("unlimited_featured_job_listings"),
+  ]);
+
+  return !canFeatured.some(Boolean);
+}
+
 async function getPublishedJobListingsCount(orgId: string) {
   const { getToken } = await auth();
 
@@ -28,6 +43,34 @@ async function getPublishedJobListingsCount(orgId: string) {
   try {
     const response = await fetch(
       `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/count-published`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        next: {
+          tags: [getJobListingOrganizationTag(orgId)],
+        },
+      }
+    );
+
+    const json: number = await response.json();
+
+    return json;
+  } catch (err) {
+    console.log("Network error", err);
+    return 0;
+  }
+}
+
+async function getFeaturedJobListingsCount(orgId: string) {
+  const { getToken } = await auth();
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/count-featured`,
       {
         method: "GET",
         headers: {

@@ -4,6 +4,8 @@ import { getJobListing } from "@/app/employer/job-listings/[jobListingId]/page";
 import { env } from "@/data/env/client";
 import { jobListingSchema } from "@/features/job-listings/actions/schemas";
 import { revalidateJobListingTag } from "@/features/job-listings/cache";
+import { hasReachedMaxPublishedJobListings } from "@/features/job-listings/lib/planFeatureHelpers";
+import { getNextJobListingStatus } from "@/features/job-listings/lib/utils";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
 import { FullJobListing } from "@/types";
@@ -77,10 +79,8 @@ export async function createJobListing(
   redirect(`/employer/job-listings/${jobListing.id}`);
 }
 
-async function updateJobListingDb(
-  id: string,
-  data: z.infer<typeof jobListingSchema>
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function updateJobListingDb(id: string, data: any) {
   const { getToken, orgId } = await auth();
 
   const token = await getToken();
@@ -145,4 +145,38 @@ export async function updateJobListing(
 
   revalidateJobListingTag({ id: jobListing.id, orgId });
   redirect(`/employer/job-listings/${jobListing.id}`);
+}
+
+export async function toggleJobListingStatus(id: string) {
+  const error = {
+    error: true,
+    message: "You don't have a permission to update a job listing status",
+  };
+
+  const { orgId } = await getCurrentOrganization();
+  if (orgId == null) return error;
+
+  const jobListing = await getJobListing(id, orgId);
+  if (jobListing == null) return error;
+
+  const newStatus = getNextJobListingStatus(jobListing.status);
+  if (
+    !(await hasOrgUserPermission("job_listing:change_status")) ||
+    (newStatus === "published" && (await hasReachedMaxPublishedJobListings()))
+  ) {
+    return error;
+  }
+
+  await updateJobListingDb(id, {
+    status: newStatus,
+    isFeatured: newStatus === "published" ? undefined : false,
+    postedAt:
+      newStatus === "published" && jobListing.postedAt == null
+        ? new Date()
+        : undefined,
+  });
+
+  revalidateJobListingTag({ id: jobListing.id, orgId });
+
+  return { error: false };
 }

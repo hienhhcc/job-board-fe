@@ -4,7 +4,7 @@ import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasPlanFeature } from "@/services/clerk/lib/planFeatures";
 import { auth } from "@clerk/nextjs/server";
 
-export async function hasReachedMaxFeaturedJobListings() {
+export async function hasReachedMaxPublishedJobListings() {
   const { orgId } = await getCurrentOrganization();
 
   if (orgId == null) return true;

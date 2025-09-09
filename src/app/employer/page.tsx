@@ -34,7 +34,7 @@ async function SuspendedPage() {
 async function getMostRecentJobListing(orgId: string, token: string | null) {
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/job-listing/org/${orgId}/recent`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/recent`,
       {
         method: "GET",
         headers: {

@@ -49,18 +49,15 @@ export async function getCurrentOrganization({ allData = false } = {}) {
 
 async function getOrganization(token: string | null, id: string) {
   try {
-    const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/organization/${id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        next: {
-          tags: [getOrganizationIdTag(id)],
-        },
-      }
-    );
+    const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/org/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      next: {
+        tags: [getOrganizationIdTag(id)],
+      },
+    });
 
     const json: FullOrganization = await response.json();
 

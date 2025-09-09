@@ -1,15 +1,24 @@
+import { AsyncIf } from "@/components/AsyncIf";
 import { MarkdownPartial } from "@/components/markdown/MarkdownPartial";
 import MarkdownRenderer from "@/components/markdown/MarkdownRenderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { env } from "@/data/env/client";
 import { getJobListingOrganizationTag } from "@/features/job-listings/cache";
 import JobListingBadges from "@/features/job-listings/components/JobListingBadges";
 import { formatJobListingStatus } from "@/features/job-listings/lib/formatters";
+import { hasReachedMaxFeaturedJobListings } from "@/features/job-listings/lib/planFeatureHelpers";
+import { getNextJobListingStatus } from "@/features/job-listings/lib/utils";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
-import { FullJobListing } from "@/types";
+import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
+import { FullJobListing, JobListingStatus } from "@/types";
 import { auth } from "@clerk/nextjs/server";
-import { EditIcon } from "lucide-react";
+import { EditIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -49,12 +58,19 @@ async function SuspendedPage({ params }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 empty:-mt:4">
-          <Button asChild variant="outline">
-            <Link href={`/employer/job-listings/${jobListing.id}/edit`}>
-              <EditIcon className="size-4" />
-              Edit
-            </Link>
-          </Button>
+          <AsyncIf
+            condition={() =>
+              hasOrgUserPermission("job_listing:update_job_listing")
+            }
+          >
+            <Button asChild variant="outline">
+              <Link href={`/employer/job-listings/${jobListing.id}/edit`}>
+                <EditIcon className="size-4" />
+                Edit
+              </Link>
+            </Button>
+          </AsyncIf>
+          <StatusUpdateButton status={jobListing.status} />
         </div>
       </div>
 
@@ -72,6 +88,67 @@ async function SuspendedPage({ params }: Props) {
   );
 }
 
+function StatusUpdateButton({ status }: { status: JobListingStatus }) {
+  const button = <Button variant="outline">Toggle</Button>;
+
+  return (
+    <AsyncIf
+      condition={() => hasOrgUserPermission("job_listing:change_status")}
+    >
+      {getNextJobListingStatus(status) === "published" ? (
+        <AsyncIf
+          condition={async () => {
+            const isMaxed = await hasReachedMaxFeaturedJobListings();
+
+            return !isMaxed;
+          }}
+          otherwise={
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  {statusToggleButtonText(status)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="flex flex-col gap-2">
+                You must upgrade your plan to publish more job listings.
+                <Button asChild>
+                  <Link href="/employer/pricing">Upgrade Plan</Link>
+                </Button>
+              </PopoverContent>
+            </Popover>
+          }
+        >
+          {button}
+        </AsyncIf>
+      ) : (
+        button
+      )}
+    </AsyncIf>
+  );
+}
+
+function statusToggleButtonText(status: JobListingStatus) {
+  switch (status) {
+    case "delisted":
+    case "draft":
+      return (
+        <>
+          <EyeIcon className="size-4" />
+          Publish
+        </>
+      );
+    case "published":
+      return (
+        <>
+          <EyeOffIcon className="size-4" />
+          Delist
+        </>
+      );
+    default:
+      throw new Error(`Unknown status: ${status satisfies never}`);
+  }
+}
+
 export async function getJobListing(jobListingId: string, orgId: string) {
   const { getToken } = await auth();
 
@@ -79,7 +156,7 @@ export async function getJobListing(jobListingId: string, orgId: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/job-listing/org/${orgId}/${jobListingId}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${jobListingId}`,
       {
         method: "GET",
         headers: {

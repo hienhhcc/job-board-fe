@@ -18,7 +18,7 @@ async function insertJobListing(data: z.infer<typeof jobListingSchema>) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/job-listing/org/${orgId}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -87,7 +87,7 @@ async function updateJobListingDb(
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/job-listing/org/${orgId}/${id}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${id}`,
       {
         method: "PATCH",
         body: JSON.stringify(data),

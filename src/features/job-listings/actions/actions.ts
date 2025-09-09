@@ -131,7 +131,7 @@ export async function updateJobListing(
     return null;
   }
 
-  const updatedJobListing = await updateJobListingDb(id, data);
+  await updateJobListingDb(id, data);
 
   revalidateJobListingTag({ id: jobListing.id, orgId });
   redirect(`/employer/job-listings/${jobListing.id}`);

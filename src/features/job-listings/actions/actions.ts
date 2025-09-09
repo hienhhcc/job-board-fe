@@ -5,6 +5,7 @@ import { env } from "@/data/env/client";
 import { jobListingSchema } from "@/features/job-listings/actions/schemas";
 import { revalidateJobListingTag } from "@/features/job-listings/cache";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
+import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
 import { FullJobListing } from "@/types";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
@@ -45,7 +46,10 @@ export async function createJobListing(
 ) {
   const { orgId } = await getCurrentOrganization();
 
-  if (orgId == null) {
+  if (
+    orgId == null ||
+    !(await hasOrgUserPermission("job_listing:create_job_listing"))
+  ) {
     return {
       error: true,
       message: "You don't have a permission to create a job listing",
@@ -109,10 +113,13 @@ export async function updateJobListing(
 ) {
   const { orgId } = await getCurrentOrganization();
 
-  if (orgId == null) {
+  if (
+    orgId == null ||
+    !(await hasOrgUserPermission("job_listing:update_job_listing"))
+  ) {
     return {
       error: true,
-      message: "You don't have a permission to create a job listing",
+      message: "You don't have a permission to update a job listing",
     };
   }
 
@@ -121,14 +128,17 @@ export async function updateJobListing(
   if (!success) {
     return {
       error: true,
-      message: "There was an error creating your job listing",
+      message: "There was an error updat your job listing",
     };
   }
 
   const jobListing = await getJobListing(id, orgId);
 
-  if (!jobListing) {
-    return null;
+  if (jobListing == null) {
+    return {
+      error: true,
+      message: "There was an error updating your job listing",
+    };
   }
 
   await updateJobListingDb(id, data);

@@ -213,3 +213,57 @@ export async function toggleJobListingFeatured(id: string) {
 
   return { error: false };
 }
+
+export async function deleteJobListing(id: string) {
+  const { orgId } = await getCurrentOrganization();
+
+  if (
+    orgId == null ||
+    !(await hasOrgUserPermission("job_listing:delete_job_listing"))
+  ) {
+    return {
+      error: true,
+      message: "You don't have a permission to delete a job listing",
+    };
+  }
+
+  const response = await deleteJobListingDb(id);
+
+  if (!response?.success) {
+    return {
+      error: true,
+      message: "There was an error while deleting your job listing",
+    };
+  }
+
+  revalidateJobListingTag({ id, orgId });
+  redirect("/employer");
+}
+
+async function deleteJobListingDb(id: string) {
+  const { getToken, orgId } = await auth();
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const json: {
+      success: boolean;
+      deletedJobListing: { id: string; organizationId: string };
+    } = await response.json();
+
+    return json;
+  } catch (err) {
+    console.log("Network error", err);
+    return null;
+  }
+}

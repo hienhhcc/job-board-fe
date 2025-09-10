@@ -15,6 +15,8 @@ import {
   toggleJobListingStatus,
 } from "@/features/job-listings/actions/actions";
 import { getJobListingOrganizationTag } from "@/features/job-listings/cache";
+import DeleteJobListingButton from "@/features/job-listings/components/DeleteJobListingButton";
+import EditJobListingButton from "@/features/job-listings/components/EditJobListingButton";
 import JobListingBadges from "@/features/job-listings/components/JobListingBadges";
 import { formatJobListingStatus } from "@/features/job-listings/lib/formatters";
 import {
@@ -26,13 +28,7 @@ import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
 import { FullJobListing, JobListingStatus } from "@/types";
 import { auth } from "@clerk/nextjs/server";
-import {
-  EditIcon,
-  EyeIcon,
-  EyeOffIcon,
-  StarIcon,
-  StarOffIcon,
-} from "lucide-react";
+import { EyeIcon, EyeOffIcon, StarIcon, StarOffIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactNode, Suspense } from "react";
@@ -72,18 +68,7 @@ async function SuspendedPage({ params }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 empty:-mt:4">
-          <AsyncIf
-            condition={() =>
-              hasOrgUserPermission("job_listing:update_job_listing")
-            }
-          >
-            <Button asChild variant="outline">
-              <Link href={`/employer/job-listings/${jobListing.id}/edit`}>
-                <EditIcon className="size-4" />
-                Edit
-              </Link>
-            </Button>
-          </AsyncIf>
+          <EditJobListingButton jobListingId={jobListing.id} />
           <StatusUpdateButton status={jobListing.status} id={jobListing.id} />
           {jobListing.status === "published" && (
             <FeaturedToggleButton
@@ -91,6 +76,7 @@ async function SuspendedPage({ params }: Props) {
               id={jobListing.id}
             />
           )}
+          <DeleteJobListingButton jobListingId={jobListing.id} />
         </div>
       </div>
 

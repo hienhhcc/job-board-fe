@@ -1,13 +1,14 @@
 import { AsyncIf } from "@/components/AsyncIf";
 import { Button } from "@/components/ui/button";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
-import { Link, EditIcon } from "lucide-react";
+import { EditIcon } from "lucide-react";
+import Link from "next/link";
 
 type Props = {
   jobListingId: string;
 };
 
-export default function EditJobListingButton({ jobListingId }: Props) {
+export default async function EditJobListingButton({ jobListingId }: Props) {
   return (
     <AsyncIf
       condition={() => hasOrgUserPermission("job_listing:update_job_listing")}

@@ -33,7 +33,7 @@ import {
   formatLocationRequirement,
   formatWageInterval,
 } from "@/features/job-listings/lib/formatters";
-import { StateSelectItem } from "@/features/job-listings/components/StateSelectItem";
+import { StateSelectItems } from "@/features/job-listings/components/StateSelectItem";
 import { MarkdownEditor } from "@/components/markdown/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { LoadingSwap } from "@/components/LoadingSwap";
@@ -209,7 +209,7 @@ export default function JobListingForm({
                           Clear
                         </SelectItem>
                       )}
-                      <StateSelectItem />
+                      <StateSelectItems />
                     </SelectContent>
                   </Select>
                   <FormMessage />

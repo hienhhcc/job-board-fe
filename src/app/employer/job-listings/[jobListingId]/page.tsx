@@ -250,7 +250,7 @@ export async function getJobListing(jobListingId: string, orgId: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${jobListingId}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/${jobListingId}`,
       {
         method: "GET",
         headers: {

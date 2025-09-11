@@ -19,7 +19,7 @@ async function getJobListings(orgId: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings`,
       {
         method: "GET",
         headers: {

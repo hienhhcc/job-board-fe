@@ -42,7 +42,7 @@ async function getPublishedJobListingsCount(orgId: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/count-published`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/count-published`,
       {
         method: "GET",
         headers: {
@@ -70,7 +70,7 @@ async function getFeaturedJobListingsCount(orgId: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/count-featured`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/count-featured`,
       {
         method: "GET",
         headers: {

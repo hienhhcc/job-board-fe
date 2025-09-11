@@ -51,3 +51,15 @@ export type FullJobListing = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type APIResponse<T> = ErrorResponse | SuccessResponse<T>;
+
+export type SuccessResponse<T> = {
+  success: true;
+  data: T;
+};
+
+export type ErrorResponse = {
+  success: false;
+  message: string;
+};

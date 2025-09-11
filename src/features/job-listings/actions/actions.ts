@@ -23,7 +23,7 @@ async function insertJobListing(data: z.infer<typeof jobListingSchema>) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -90,7 +90,7 @@ async function updateJobListingDb(id: string, data: any) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${id}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/${id}`,
       {
         method: "PATCH",
         body: JSON.stringify(data),
@@ -247,7 +247,7 @@ async function deleteJobListingDb(id: string) {
 
   try {
     const response = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listing/${id}`,
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/${id}`,
       {
         method: "DELETE",
         headers: {

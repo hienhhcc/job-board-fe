@@ -10,20 +10,28 @@ import { env } from "@/data/env/client";
 import { getJobListingGlobalTag } from "@/features/job-listings/cache";
 import { convertSearchParamsToString } from "@/lib/convertSearchParamsToString";
 import { cn } from "@/lib/utils";
-import { APIResponse, FullJobListing, FullOrganization } from "@/types";
+import {
+  APIResponse,
+  experienceLevels,
+  FullJobListing,
+  FullOrganization,
+  jobListingTypes,
+  locationRequirements,
+} from "@/types";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import { differenceInDays } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import JobListingBadges from "@/features/job-listings/components/JobListingBadges";
+import z from "zod";
 
 async function getJobListings({
   jobListingId,
   searchParams,
 }: {
   jobListingId?: string | null;
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: z.infer<typeof searchParamsSchema>;
 }): Promise<APIResponse<
   (FullJobListing & { organization: { name: string; imageUrl: string } })[]
 > | null> {
@@ -61,6 +69,20 @@ type Props = {
   paramsPromise?: Promise<{ jobListingId: string }>;
 };
 
+const searchParamsSchema = z.object({
+  title: z.string().optional().catch(undefined),
+  city: z.string().optional().catch(undefined),
+  state: z.string().optional().catch(undefined),
+  experience: z.enum(experienceLevels).optional().catch(undefined),
+  locationRequirement: z.enum(locationRequirements).optional().catch(undefined),
+  type: z.enum(jobListingTypes).optional().catch(undefined),
+  jobIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : [v]))
+    .optional()
+    .catch([]),
+});
+
 export default function JobListingItems(props: Props) {
   return (
     <Suspense>
@@ -76,9 +98,13 @@ async function SuspendedComponent({
   const jobListingId = paramsPromise
     ? (await paramsPromise).jobListingId
     : undefined;
-  const searchParams = await searchParamsPromise;
 
   //TODO: zod validate
+  const { success, data } = searchParamsSchema.safeParse(
+    await searchParamsPromise
+  );
+  const searchParams = success ? data : {};
+
   const response = await getJobListings({ jobListingId, searchParams });
 
   if (!response || response.success === false || response.data.length === 0) {
@@ -133,8 +159,6 @@ function JobListingListItem({
     .splice(0, 4)
     .map((w) => w[0])
     .join("");
-
-  console.log(jobListing.postedAt, typeof jobListing.postedAt);
 
   return (
     <Card

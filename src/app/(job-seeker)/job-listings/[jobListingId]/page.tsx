@@ -170,11 +170,13 @@ async function getJobListingApplication({
 
 export async function getUserResume({
   userId,
+  token,
 }: {
   userId: string;
+  token?: string | null;
 }): Promise<APIResponse<FullUserResume> | null> {
   const { getToken } = await auth();
-  const token = await getToken();
+  const t = token ? token : await getToken();
 
   try {
     const response = await fetch(
@@ -182,7 +184,7 @@ export async function getUserResume({
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${t}`,
         },
         next: {
           tags: [getUserResumeIdTag({ userId })],

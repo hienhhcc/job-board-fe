@@ -10,6 +10,9 @@ export const env = createEnv({
 
     NEXT_PUBLIC_API_URL: z.string().min(1),
   },
+  server: {
+    UPLOADTHING_TOKEN: z.string().min(1),
+  },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
     NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:

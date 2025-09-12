@@ -6,6 +6,7 @@ import {
 } from "@/app/(job-seeker)/job-listings/[jobListingId]/page";
 import { env } from "@/data/env/client";
 import { newJobListingApplicationSchema } from "@/features/job-listings/actions/schemas";
+import { revalidateJobListingApplicationCache } from "@/features/jobListingApplications/cache/jobListingApplications";
 import { getCurrentUser } from "@/services/clerk/lib/getCurrentAuth";
 import { APIResponse, FullJobListingApplication } from "@/types";
 import { auth } from "@clerk/nextjs/server";
@@ -86,8 +87,10 @@ export async function createJobListingApplication(
     };
   }
 
+  revalidateJobListingApplicationCache({ userId, jobListingId });
+
   return {
     error: false,
-    message: "Create job listing application successfully",
+    message: "Your application was successfully submitted",
   };
 }

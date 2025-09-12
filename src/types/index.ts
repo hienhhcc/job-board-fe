@@ -17,6 +17,15 @@ export const jobListingTypes = [
 ] as const;
 export type JobListingType = (typeof jobListingTypes)[number];
 
+export const applicationStages = [
+  "denied",
+  "applied",
+  "interested",
+  "interviewed",
+  "hired",
+] as const;
+export type ApplicationStage = (typeof applicationStages)[number];
+
 export type FullUser = {
   id: string;
   name: string;
@@ -52,6 +61,23 @@ export type FullJobListing = {
   updatedAt: Date;
 };
 
+export type FullJobListingApplication = {
+  coverLetter: string;
+  rating: number;
+  stage: ApplicationStage;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type FullUserResume = {
+  userId: string;
+  resumeFileUrl: string;
+  resumeFileKey: string;
+  aiSummary: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type APIResponse<T> = ErrorResponse | SuccessResponse<T>;
 
 export type SuccessResponse<T> = {
@@ -63,3 +89,7 @@ export type ErrorResponse = {
   success: false;
   message: string;
 };
+
+export type SearchParamsPromise = Promise<
+  Record<string, string | string[] | undefined>
+>;

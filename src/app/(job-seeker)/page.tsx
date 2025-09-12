@@ -1,6 +1,7 @@
 import JobListingItems from "@/features/job-listings/components/JobListingItems";
+import { SearchParamsPromise } from "@/types";
 
-type HomePageProps = PageProps<"/">;
+type HomePageProps = { searchParams: SearchParamsPromise };
 
 export default function HomePage({ searchParams }: HomePageProps) {
   return (

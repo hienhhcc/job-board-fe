@@ -33,11 +33,7 @@ export default function IntervalMarkdownEditor({
   return (
     <MDXEditor
       {...props}
-      className={cn(
-        markdownClassNames,
-        isDarkMode && "dark-theme prose-invert",
-        className
-      )}
+      className={cn(markdownClassNames, isDarkMode && "dark-theme", className)}
       ref={ref}
       suppressHtmlProcessing
       plugins={[

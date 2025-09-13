@@ -1,6 +1,7 @@
 "use client";
 import { LoadingSwap } from "@/components/LoadingSwap";
 import { MarkdownEditor } from "@/components/markdown/MarkdownEditor";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,7 +14,6 @@ import {
 import { newJobListingApplicationSchema } from "@/features/job-listings/actions/schemas";
 import { createJobListingApplication } from "@/features/jobListingApplications/actions/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@mdxeditor/editor";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";

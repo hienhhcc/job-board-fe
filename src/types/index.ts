@@ -45,6 +45,7 @@ export type FullOrganization = {
 
 export type FullJobListing = {
   id: string;
+  organizationId: string;
   title: string;
   description: string;
   wage: number;

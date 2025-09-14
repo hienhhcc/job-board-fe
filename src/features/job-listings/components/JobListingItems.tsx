@@ -99,7 +99,6 @@ async function SuspendedComponent({
     ? (await paramsPromise).jobListingId
     : undefined;
 
-  //TODO: zod validate
   const { success, data } = searchParamsSchema.safeParse(
     await searchParamsPromise
   );

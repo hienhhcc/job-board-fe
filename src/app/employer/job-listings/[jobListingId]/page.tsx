@@ -1,5 +1,6 @@
 import { ActionButton } from "@/components/ActionButton";
 import { AsyncIf } from "@/components/AsyncIf";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { MarkdownPartial } from "@/components/markdown/MarkdownPartial";
 import MarkdownRenderer from "@/components/markdown/MarkdownRenderer";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { env } from "@/data/env/client";
 import {
   toggleJobListingFeatured,
@@ -24,9 +26,16 @@ import {
   hasReachedMaxPublishedJobListings,
 } from "@/features/job-listings/lib/planFeatureHelpers";
 import { getNextJobListingStatus } from "@/features/job-listings/lib/utils";
+import { getJobListingApplicationByJobListingTag } from "@/features/jobListingApplications/cache/jobListingApplications";
+import { ApplicationTable } from "@/features/jobListingApplications/components/ApplicationTable";
 import { getCurrentOrganization } from "@/services/clerk/lib/getCurrentAuth";
 import { hasOrgUserPermission } from "@/services/clerk/lib/orgUserPermission";
-import { FullJobListing, JobListingStatus } from "@/types";
+import {
+  APIResponse,
+  ApplicationStage,
+  FullJobListing,
+  JobListingStatus,
+} from "@/types";
 import { auth } from "@clerk/nextjs/server";
 import { EyeIcon, EyeOffIcon, StarIcon, StarOffIcon } from "lucide-react";
 import Link from "next/link";
@@ -56,7 +65,7 @@ async function SuspendedPage({ params }: Props) {
   if (jobListing == null) return notFound();
 
   return (
-    <div className="space-y-6 max-w-6xl max-auto p-4 @container">
+    <div className="space-y-6 max-w-6xl mx-auto p-4 @container">
       <div className="flex items-center justify-between gap-4 @max-4xl:flex-col @max-4xl:items-start">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -90,7 +99,64 @@ async function SuspendedPage({ params }: Props) {
         }
         dialogTitle="Description"
       />
+
+      <Separator />
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Application</h2>
+        <Suspense fallback={<SkeletonApplicationTable />}>
+          <Applications jobListingId={jobListingId} />
+        </Suspense>
+      </div>
     </div>
+  );
+}
+
+function SkeletonApplicationTable() {
+  return (
+    <ApplicationTable
+      applications={[]}
+      canUpdateRating={false}
+      canUpdateStage={false}
+      disableToolbar
+      noResultsMessage={<LoadingSpinner className="size-12" />}
+    />
+  );
+}
+
+async function Applications({ jobListingId }: { jobListingId: string }) {
+  const response = await getJobListingApplications(jobListingId);
+
+  if (response == null || response?.success === false) return null;
+
+  return (
+    <ApplicationTable
+      applications={
+        response.data.map((a) => ({
+          ...a,
+          user: {
+            ...a.user,
+            resume: a.user.resume
+              ? {
+                  ...a.user.resume,
+                  mardownSummary: a.user.resume.aiSummary ? (
+                    <MarkdownRenderer source={a.user.resume.aiSummary} />
+                  ) : null,
+                }
+              : null,
+          },
+          coverLetterMarkdown: a.coverLetter ? (
+            <MarkdownRenderer source={a.coverLetter} />
+          ) : null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        })) as any
+      }
+      canUpdateRating={await hasOrgUserPermission(
+        "job_listing:applicant_change_rating"
+      )}
+      canUpdateStage={await hasOrgUserPermission(
+        "job_listing:applicant_change_stage"
+      )}
+    />
   );
 }
 
@@ -240,6 +306,50 @@ function statusToggleButtonText(status: JobListingStatus) {
       );
     default:
       throw new Error(`Unknown status: ${status satisfies never}`);
+  }
+}
+
+export async function getJobListingApplications(
+  jobListingId: string
+): Promise<APIResponse<
+  {
+    coverLetter: string;
+    jobListingId: string;
+    createdAt: Date;
+    stage: ApplicationStage;
+    user: {
+      id: string;
+      name: string;
+      imageUrl: string;
+      resume: { aiSummary: null; resumeFileUrl: string };
+    };
+    rating: number;
+  }[]
+> | null> {
+  const { getToken, orgId } = await auth();
+
+  const token = await getToken();
+
+  try {
+    const response = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/org/${orgId}/job-listings/${jobListingId}/applications`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        next: {
+          tags: [getJobListingApplicationByJobListingTag(jobListingId)],
+        },
+      }
+    );
+
+    const json = await response.json();
+
+    return json;
+  } catch (err) {
+    console.log("Network error", err);
+    return null;
   }
 }
 

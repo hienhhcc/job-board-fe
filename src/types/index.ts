@@ -78,6 +78,15 @@ export type FullUserResume = {
   updatedAt: Date;
 };
 
+export type FullOrganizationUserSettings = {
+  userId: string;
+  organizationId: string;
+  newApplicationEmailNotifications: boolean;
+  minimumRating: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type APIResponse<T> = ErrorResponse | SuccessResponse<T>;
 
 export type SuccessResponse<T> = {

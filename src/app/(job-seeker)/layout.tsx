@@ -1,12 +1,7 @@
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
 import SidebarNavMenuGroup from "@/components/sidebar/SidebarNavMenuGroup";
 import SidebarUserButton from "@/features/users/components/SidebarUserButton";
-import {
-  BrainCircuitIcon,
-  ClipboardListIcon,
-  LayoutDashboard,
-  LogInIcon,
-} from "lucide-react";
+import { ClipboardListIcon, LayoutDashboard, LogInIcon } from "lucide-react";
 import { ReactNode } from "react";
 
 type JobSeekerLayoutProps = {
@@ -30,11 +25,6 @@ export default function JobSeekerLayout({
                 href: "/",
                 icon: <ClipboardListIcon />,
                 label: "Job Board",
-              },
-              {
-                href: "/ai-search",
-                icon: <BrainCircuitIcon />,
-                label: "AI Search",
               },
               {
                 href: "/employer",
